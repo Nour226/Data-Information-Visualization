@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Football Network - Exercise 4</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- D3 version 3, required by the course -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>Football Network</h1>
+        <p>Exercise 4 : Force Layout and Fish-eye Interaction</p>
+    </header>
+
+    <section id="status-panel">
+        <div id="message">Loading dataset...</div>
+        <div id="statistics"></div>
+    </section>
+
+    <section class="toolbar">
+        <div>
+            <strong>How to interact:</strong>
+            Move the mouse over the graph to activate the fish-eye effect.
+            Drag a team to move it.
+        </div>
+
+        <button id="resetButton" type="button">Reset positions</button>
+    </section>
+
+    <section id="graph-wrapper">
+        <div id="footballGraph"></div>
+    </section>
+
+    <section class="legend">
+        <h3>Graph legend</h3>
+        <p>
+            <span class="legend-circle"></span>
+            Team (vertex)
+            <span class="legend-line"></span>
+            Directed connection (arc)
+            <span class="legend-arrow">➜</span>
+            Direction of connection
+        </p>
+        <p>Circle size represents the number of incoming and outgoing connections.</p>
+        <p>Link thickness represents the arc weight.</p>
+    </section>
+
+    <section class="data-section">
+        <details>
+            <summary>View complete datasets</summary>
+
+            <h3>Vertices</h3>
+            <div id="vertices"></div>
+
+            <h3>Arcs</h3>
+            <div id="arcs"></div>
+        </details>
+    </section>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>

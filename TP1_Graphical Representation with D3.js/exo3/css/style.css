@@ -1,0 +1,203 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 25px;
+    background-color: #f4f6fa;
+    color: #263445;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    color: #243b53;
+    margin-bottom: 8px;
+}
+
+header p {
+    color: #627d98;
+    margin-top: 0;
+}
+
+#message {
+    padding: 14px;
+    margin: 15px 0;
+    background-color: white;
+    border: 1px solid #d9e2ec;
+    border-left: 5px solid #2878b5;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+#message.success {
+    border-left-color: #2e9d68;
+    color: #23784f;
+}
+
+#message.error {
+    border-left-color: #d64545;
+    color: #b42318;
+}
+
+#statistics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.stat {
+    flex: 1;
+    min-width: 150px;
+    padding: 18px;
+    background-color: white;
+    border: 1px solid #d9e2ec;
+    border-radius: 6px;
+    text-align: center;
+    color: #627d98;
+}
+
+.stat strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 27px;
+    color: #2878b5;
+}
+
+#instructions {
+    padding: 14px;
+    margin: 18px 0;
+    background-color: #e8eff8;
+    border-radius: 5px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+#legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: white;
+    border: 1px solid #d9e2ec;
+    border-radius: 5px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+}
+
+.legend-color {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+}
+
+#footballGraph {
+    width: 100%;
+    background-color: white;
+    border: 1px solid #d9e2ec;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+
+#footballGraph svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.link {
+    stroke: #9aa5b1;
+    stroke-opacity: 0.55;
+    fill: none;
+}
+
+.node {
+    stroke: white;
+    stroke-width: 1.8px;
+    cursor: grab;
+}
+
+.node:active {
+    cursor: grabbing;
+}
+
+.label {
+    fill: #243b53;
+    font-size: 11px;
+    font-family: Arial, sans-serif;
+    pointer-events: none;
+    font-weight: bold;
+}
+
+details {
+    padding: 18px;
+    margin-top: 20px;
+    background-color: white;
+    border: 1px solid #d9e2ec;
+    border-radius: 5px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #2878b5;
+    padding: 5px;
+}
+
+details h2 {
+    margin-top: 25px;
+    font-size: 18px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0 25px;
+    background-color: white;
+}
+
+th,
+td {
+    padding: 9px;
+    border: 1px solid #d9e2ec;
+    text-align: center;
+    font-size: 13px;
+}
+
+th {
+    background-color: #243b53;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f0f4f8;
+}
+
+@media (max-width: 650px) {
+    body {
+        margin: 10px;
+    }
+
+    #instructions {
+        font-size: 12px;
+    }
+
+    th,
+    td {
+        padding: 5px;
+        font-size: 11px;
+    }
+}

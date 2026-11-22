@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Football Network - D3.js</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- D3.js version 3 -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>Football Network</h1>
+        <p>Exercise 3 </p>
+    </header>
+
+    <!-- Dataset loading status -->
+    <div id="message">Loading dataset...</div>
+
+    <!-- Dataset statistics -->
+    <div id="statistics"></div>
+
+    <!-- Interaction instructions -->
+    <div id="instructions">
+        <strong>How to interact:</strong>
+        Drag a team to move it.
+        Scroll to zoom in or out.
+        Drag the background to move the graph.
+        Hover over a team to highlight its connections.
+    </div>
+
+    <!-- Color legend -->
+    <div id="legend"></div>
+
+    <!-- Network graph -->
+    <div id="footballGraph"></div>
+
+    <!-- Dataset tables -->
+    <details>
+        <summary>View complete datasets</summary>
+
+        <h2>Vertices</h2>
+        <div id="vertices"></div>
+
+        <h2>Arcs</h2>
+        <div id="arcs"></div>
+    </details>
+
+    <!-- JavaScript -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

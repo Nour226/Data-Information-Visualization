@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Stade de Football - D3.js</title>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <style>
+        #stade {
+            text-align: center;
+            margin-top: 20px;
+        }
+        svg {
+            border: 3px solid #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 8px;
+        }
+        .ligne-terrain {
+            stroke: #ffffff;
+            stroke-width: 3;
+            fill: none;
+        }
+        .projecteur {
+            fill: #ffeb3b;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="stade"></div>
+
+    <script>
+        // 1. Dimensions du stade
+        var width = 700;
+        var height = 450;
+
+        // 2. Création du canevas SVG (Pelouse verte)
+        var svg = d3.select("#stade")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("background-color", "#2e7d32"); // Vert pelouse
+
+        // 3. Bandes de gazon 
+        for (var i = 0; i < width; i += 70) {
+            if ((i / 70) % 2 === 0) {
+                svg.append("rect")
+                    .attr("x", i)
+                    .attr("y", 0)
+                    .attr("width", 70)
+                    .attr("height", height)
+                    .style("fill", "#388e3c")
+                    .style("opacity", 0.4);
+            }
+        }
+
+        // 4. Lignes du terrain
+
+        // Ligne d'imitation / Contour extérieur
+        svg.append("rect")
+            .attr("x", 40)
+            .attr("y", 30)
+            .attr("width", 620)
+            .attr("height", 390)
+            .attr("class", "ligne-terrain");
+
+        // Ligne médiane (milieu du terrain)
+        svg.append("line")
+            .attr("x1", width / 2)
+            .attr("y1", 30)
+            .attr("x2", width / 2)
+            .attr("y2", 420)
+            .attr("class", "ligne-terrain");
+
+        // Cercle central
+        svg.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", 60)
+            .attr("class", "ligne-terrain");
+
+        // Point central (coup d'envoi)
+        svg.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", 4)
+            .style("fill", "white");
+
+        // Surface de réparation Gauche
+        svg.append("rect")
+            .attr("x", 40)
+            .attr("y", 115)
+            .attr("width", 110)
+            .attr("height", 220)
+            .attr("class", "ligne-terrain");
+
+        // Surface de réparation Droite
+        svg.append("rect")
+            .attr("x", 550)
+            .attr("y", 115)
+            .attr("width", 110)
+            .attr("height", 220)
+            .attr("class", "ligne-terrain");
+
+        // Cage de but Gauche
+        svg.append("rect")
+            .attr("x", 20)
+            .attr("y", 175)
+            .attr("width", 20)
+            .attr("height", 100)
+            .attr("class", "ligne-terrain")
+            .style("fill", "rgba(255,255,255,0.2)");
+
+        // Cage de but Droite
+        svg.append("rect")
+            .attr("x", 660)
+            .attr("y", 175)
+            .attr("width", 20)
+            .attr("height", 100)
+            .attr("class", "ligne-terrain")
+            .style("fill", "rgba(255,255,255,0.2)");
+
+        // 5. Le Ballon de Football
+        var ballon = svg.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", 10)
+            .style("fill", "white")
+            .style("stroke", "black")
+            .style("stroke-width", 3)
+            .style("cursor", "pointer");
+
+        // 6. Projecteurs aux 4 coins du stade
+        var coins = [
+            {x: 15, y: 15}, {x: 685, y: 15},
+            {x: 15, y: 435}, {x: 685, y: 435}
+        ];
+
+        coins.forEach(function(pt) {
+            svg.append("circle")
+                .attr("cx", pt.x)
+                .attr("cy", pt.y)
+                .attr("r", 8)
+                .attr("class", "projecteur");
+        });
+
+        // 7. Interaction : Déplacer le ballon au clic sur le terrain
+        svg.on("click", function() {
+            var coords = d3.mouse(this);
+            ballon.transition()
+                .duration(600)
+                .attr("cx", coords[0])
+                .attr("cy", coords[1]);
+        });
+    </script>
+
+</body>
+</html>

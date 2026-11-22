@@ -1,0 +1,224 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 25px;
+    font-family: Arial, sans-serif;
+    background: #f3f6fa;
+    color: #243447;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    margin-bottom: 8px;
+    color: #19324d;
+    font-size: 30px;
+}
+
+header p {
+    color: #64748b;
+    margin-top: 0;
+}
+
+#status-panel {
+    background: white;
+    padding: 15px;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+#message {
+    font-weight: bold;
+    color: #287a55;
+    margin-bottom: 12px;
+}
+
+#statistics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 130px;
+    padding: 12px;
+    text-align: center;
+    background: #edf4fb;
+    border-radius: 6px;
+}
+
+.stat-card span {
+    display: block;
+    color: #526579;
+    font-size: 13px;
+}
+
+.stat-card strong {
+    display: block;
+    margin-top: 5px;
+    color: #1769aa;
+    font-size: 23px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    background: white;
+    padding: 14px;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+#resetButton {
+    border: none;
+    background: #246ca5;
+    color: white;
+    border-radius: 5px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#resetButton:hover {
+    background: #174e7a;
+}
+
+#graph-wrapper {
+    width: 100%;
+    overflow: hidden;
+    background: white;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+}
+
+#footballGraph {
+    width: 100%;
+}
+
+#footballGraph svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: crosshair;
+}
+
+.link {
+    fill: none;
+    stroke: #9aa7b5;
+    stroke-opacity: 0.55;
+}
+
+.node {
+    stroke: white;
+    stroke-width: 1.8px;
+    cursor: grab;
+}
+
+.node:active {
+    cursor: grabbing;
+}
+
+.label {
+    font-size: 11px;
+    font-weight: bold;
+    fill: #26384a;
+    pointer-events: none;
+    text-shadow: 0 1px 2px white;
+}
+
+.legend {
+    background: white;
+    padding: 12px 18px;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 13px;
+}
+
+.legend h3 {
+    margin-top: 0;
+}
+
+.legend-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #2878b5;
+    margin: 0 5px 0 10px;
+}
+
+.legend-line {
+    display: inline-block;
+    width: 25px;
+    border-top: 2px solid #9aa7b5;
+    margin: 0 5px 3px 15px;
+}
+
+.legend-arrow {
+    color: #2878b5;
+    font-size: 17px;
+    margin-left: 10px;
+}
+
+.data-section {
+    margin-top: 20px;
+    background: white;
+    padding: 15px;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 8px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 15px 0 25px;
+    background: white;
+    font-size: 13px;
+}
+
+th, td {
+    border: 1px solid #dce3eb;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: #243f5b;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f6fa;
+}
+
+@media (max-width: 650px) {
+    body {
+        padding: 10px;
+    }
+
+    .toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

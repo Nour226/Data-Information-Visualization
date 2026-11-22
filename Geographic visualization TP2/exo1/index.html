@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Earthquake Geographic Visualization</title>
+
+    <!-- ArcGIS API 3.46 CSS -->
+    <link rel="stylesheet"
+          href="https://js.arcgis.com/3.46/esri/css/jsapi.css">
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Exercise 1: Style the five magnitude classifications */
+
+        path[data-classification="0"] {
+            fill: none;
+            stroke: #f5cb00;
+            stroke-width: 3px;
+            stroke-opacity: 1;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        path[data-classification="1"] {
+            fill: none;
+            stroke: #f67682;
+            stroke-width: 5px;
+            stroke-opacity: 0.9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        path[data-classification="2"] {
+            fill: none;
+            stroke: #f75e64;
+            stroke-width: 8px;
+            stroke-opacity: 0.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        path[data-classification="3"] {
+            fill: none;
+            stroke: #f72d3f;
+            stroke-width: 11px;
+            stroke-opacity: 0.65;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        path[data-classification="4"] {
+            fill: none;
+            stroke: #b00020;
+            stroke-width: 16px;
+            stroke-opacity: 0.55;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #legend svg {
+            vertical-align: middle;
+        }
+
+        #legend {
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+    </style>
+
+    <!-- D3.js version 3 -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+
+    <!-- ArcGIS API version 3.46 -->
+    <script src="https://js.arcgis.com/3.46/"></script>
+
+    <script>
+        require([
+            "esri/map",
+            "esri/layers/FeatureLayer",
+            "dojo/_base/array",
+            "dojo/dom",
+            "dojo/number",
+            "dojo/on",
+            "dojo/parser",
+            "dojo/ready"
+        ], function (
+            Map,
+            FeatureLayer,
+            array,
+            dom,
+            number,
+            on,
+            parser,
+            ready
+        ) {
+
+            parser.parse();
+
+            var map;
+            var earthquakes;
+            var quantize;
+
+            ready(function () {
+
+                // Exercise 2: Change the initial map location to New York
+                map = new Map("map", {
+                    basemap: "gray-vector",
+                    center: [-74.0060, 40.7128],
+                    zoom: 6
+                });
+
+                addEarthquakes();
+            });
+
+
+            // Load and display the earthquake layer
+           
+function addEarthquakes() {
+
+    earthquakes = new FeatureLayer(
+        "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Earthquakes_Since1970/FeatureServer/0",
+        {
+            id: "earthquakes",
+            styling: false,
+            outFields: ["*"]
+        }
+    );
+
+    // D3 Quantize scale
+    quantize = d3.scale.quantize()
+        .domain([0, 9])
+        .range(d3.range(5));
+
+    // Exercise 1: Classify earthquakes
+    if (earthquakes.surfaceType === "svg") {
+
+        on(earthquakes, "graphic-draw", function(evt) {
+
+            var attrs = evt.graphic.attributes;
+            var magnitude = attrs && attrs.magnitude;
+
+            if (magnitude !== null &&
+                magnitude !== undefined &&
+                !isNaN(Number(magnitude))) {
+
+                var classification = quantize(Number(magnitude));
+
+                evt.node.setAttribute(
+                    "data-classification",
+                    classification
+                );
+            }
+        });
+
+        createLegend();
+
+    } else {
+        alert("Your browser does not support SVG.");
+    }
+
+    // Exercise 3: Click an earthquake to display its details
+    on(earthquakes, "click", function(evt) {
+
+        var graphic = evt.graphic;
+
+        if (!graphic) {
+            return;
+        }
+
+        var attrs = graphic.attributes;
+
+        // Get the real attributes from the ArcGIS service
+        var magnitude = attrs.magnitude;
+        var location = attrs.name;
+        var dateValue = attrs.date_;
+        var latitude = attrs.latitude;
+        var longitude = attrs.longitude;
+        var deaths = attrs.num_deaths;
+        var injured = attrs.num_injured;
+
+        // Convert the date from milliseconds to a readable date
+        var date = dateValue
+            ? new Date(dateValue).toLocaleDateString()
+            : "Not available";
+
+        // Build popup content
+        var content =
+            "<b>Magnitude:</b> " + magnitude + "<br><br>" +
+
+            "<b>Location:</b> " + (location || "Not available") + "<br><br>" +
+
+            "<b>Date:</b> " + date + "<br><br>" +
+
+            "<b>Latitude:</b> " + latitude + "<br>" +
+
+            "<b>Longitude:</b> " + longitude + "<br><br>" +
+
+            "<b>Deaths:</b> " + (deaths || 0) + "<br>" +
+
+            "<b>Injured:</b> " + (injured || 0);
+
+        // Display popup at the selected earthquake
+        map.infoWindow.setTitle("Earthquake Details");
+        map.infoWindow.setContent(content);
+        map.infoWindow.show(graphic.geometry);
+
+    });
+
+    map.addLayer(earthquakes);
+
+    return earthquakes;
+}
+
+
+            // Find an attribute using possible field names
+            function getAttribute(attributes, possibleNames) {
+
+                var keys = Object.keys(attributes);
+
+                for (var i = 0; i < possibleNames.length; i++) {
+
+                    for (var j = 0; j < keys.length; j++) {
+
+                        if (keys[j].toLowerCase() ===
+                            possibleNames[i].toLowerCase()) {
+
+                            return attributes[keys[j]];
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+
+            // Display a value or a message if it is missing
+            function formatValue(value) {
+
+                if (value === null ||
+                    value === undefined ||
+                    value === "") {
+
+                    return "Not available";
+                }
+
+                return String(value);
+            }
+
+
+            // Convert a date value into a readable date
+            function formatDate(value) {
+
+                if (value === null ||
+                    value === undefined ||
+                    value === "") {
+
+                    return "Not available";
+                }
+
+                var date = new Date(value);
+
+                if (isNaN(date.getTime())) {
+                    return String(value);
+                }
+
+                return date.toLocaleString();
+            }
+
+
+            // Prevent attribute values from being interpreted as HTML
+            function escapeHTML(value) {
+
+                return String(value)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+
+            // Create the magnitude legend
+            function createLegend() {
+
+                var swatchTemplate =
+                    '<div>' +
+                        '<svg width="24" height="24" version="1.1" ' +
+                        'xmlns="http://www.w3.org/2000/svg">' +
+                            '<path d="M 2 12 L 22 12" ' +
+                            'data-classification="${classification}" />' +
+                        '</svg>' +
+                        '<span>${label}</span>' +
+                    '</div>';
+
+                var html = "";
+                var inverted;
+                var data;
+                var legend = dom.byId("legend");
+
+                // Get the five classification values
+                array.forEach(quantize.range(), function (rangeVal) {
+
+                    // Get the magnitude interval for this classification
+                    inverted = quantize.invertExtent(rangeVal);
+
+                    data = {
+                        label:
+                            number.format(inverted[0], { places: 2 }) +
+                            " - " +
+                            number.format(inverted[1], { places: 2 }),
+
+                        classification: rangeVal
+                    };
+
+                    html += esri.substitute(data, swatchTemplate);
+                });
+
+                legend.innerHTML += html;
+            }
+
+        });
+    </script>
+</head>
+
+<body>
+
+    <div id="map">
+
+        <!-- Magnitude legend -->
+        <div style="
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            position: absolute;
+            right: 30px;
+            top: 20px;
+            z-index: 100;
+            padding: 8px;
+            border: 2px solid #666;
+            border-radius: 5px;
+            background-color: white;
+        ">
+
+            <div id="legend">
+
+                <div style="padding: 6px; text-align: center;">
+                    <b>Earthquakes</b><br>
+                    by Magnitude
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
