@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algerian Wilayas Dashboard | ArcGIS + D3.js</title>
+
+  <!-- ArcGIS Maps SDK CSS -->
+  <link rel="stylesheet"
+        href="https://js.arcgis.com/5.2/@arcgis/core/assets/esri/themes/light/main.css">
+
+  <!-- D3.js (loaded directly from CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1d2939;
+      background: #f3f6fa;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 22px 28px;
+      background: #ffffff;
+      border-bottom: 1px solid #dce3eb;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: #087e8b;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1.3px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #173b5e;
+      font-size: clamp(22px, 3vw, 30px);
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: #667085;
+      font-size: 14px;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .control {
+      display: grid;
+      gap: 6px;
+      min-width: 190px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: white;
+      color: #1d2939;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    select:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+      padding: 20px;
+    }
+
+    .panel {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid #e1e7ef;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .panel-heading {
+      padding: 16px 18px 8px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      color: #173b5e;
+      font-size: 18px;
+    }
+
+    .panel-heading p {
+      margin: 5px 0 0;
+      color: #667085;
+      font-size: 12px;
+    }
+
+    #viewDiv {
+      width: 100%;
+      height: 540px;
+    }
+
+    #barChartContainer, #pieChartContainer {
+      padding: 4px 12px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #barChartContainer svg, #pieChartContainer svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Styles des éléments D3 */
+    .bar, .slice {
+      cursor: pointer;
+      transition: opacity 150ms ease, stroke-width 150ms ease;
+    }
+
+    .bar:hover, .slice:hover {
+      opacity: 0.85;
+    }
+
+    .bar.selected, .slice.selected {
+      stroke: #111827;
+      stroke-width: 3px;
+    }
+
+    .slice {
+      stroke: #ffffff;
+      stroke-width: 1.5px;
+    }
+
+    .slice-label {
+      font-size: 11px;
+      font-weight: bold;
+      fill: #1d2939;
+      pointer-events: none;
+    }
+
+    .axis path,
+    .axis line {
+      stroke: #98a2b3;
+    }
+
+    .axis text {
+      fill: #475467;
+      font-size: 10px;
+    }
+
+    .axis-label {
+      fill: #344054;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .selection-info {
+      margin: 8px 18px 18px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: #f1f6fb;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    footer {
+      padding: 0 22px 20px;
+      color: #667085;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    @media (max-width: 850px) {
+      .page-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .control {
+        max-width: 320px;
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      #viewDiv {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">GEOGRAPHIC DATA VISUALIZATION</p>
+      <h1>Algerian Wilayas Dashboard</h1>
+      <p class="subtitle">
+        Multi-style ArcGIS Map and switchable D3.js charts
+      </p>
+    </div>
+
+    <div class="controls-group">
+      <!-- SÉLECTEUR DE TYPE DE CARTE -->
+      <label class="control" for="mapTypeSelect">
+        <span>Choose map type</span>
+        <select id="mapTypeSelect">
+          <option value="standard">Point Map (Streets)</option>
+          <option value="bubble">Bubble Map (Proportional)</option>
+          <option value="heatmap">Heatmap (Density)</option>
+          <option value="satellite">Satellite Map</option>
+          <option value="topo">Topographic Map</option>
+        </select>
+      </label>
+
+      <!-- SÉLECTEUR DE TYPE DE GRAPHIQUE -->
+      <label class="control" for="chartTypeSelect">
+        <span>Choose chart type</span>
+        <select id="chartTypeSelect">
+          <option value="bar">Bar Chart</option>
+          <option value="pie">Pie Chart (Population)</option>
+        </select>
+      </label>
+
+      <!-- SÉLECTEUR D'INDICATEUR -->
+      <label class="control" for="metricSelect">
+        <span>Choose indicator</span>
+        <select id="metricSelect">
+          <option value="population">Population (millions)</option>
+          <option value="unemployment">Unemployment (%)</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <!-- PANNEAU GAUCHE : CARTE ARCGIS MULTI-MODES -->
+    <section class="panel">
+      <div class="panel-heading">
+        <h2 id="mapTitle">Interactive map (Point Map)</h2>
+        <p id="mapSubtitle">Click a marker to select a wilaya.</p>
+      </div>
+      <div id="viewDiv"></div>
+      <p id="mapSelectionInfo" class="selection-info">Selected wilaya: none</p>
+    </section>
+
+    <!-- PANNEAU DROIT : GRAPHIQUE D3 -->
+    <section class="panel">
+      <div class="panel-heading">
+        <h2 id="chartTitle">Population by wilaya (Bar Chart)</h2>
+        <p id="chartSubtitle">Click a bar to select and zoom to the corresponding wilaya.</p>
+      </div>
+
+      <div id="barChartContainer"></div>
+      <div id="pieChartContainer" class="hidden"></div>
+
+      <p id="chartSelectionInfo" class="selection-info">Selected wilaya: none</p>
+    </section>
+  </main>
+
+  <footer>
+    Teaching dataset only. Population and unemployment values (including added wilayas Batna and Tamanrasset) are illustrative,
+    not official statistics. Coordinates are approximate city-centre locations.
+  </footer>
+
+  <!-- Application JavaScript -->
+  <script type="module">
+    // =========================================================
+    // 1. IMPORT ARCGIS MODULES
+    // =========================================================
+    import EsriMap from "https://js.arcgis.com/5.2/@arcgis/core/Map.js";
+    import MapView from "https://js.arcgis.com/5.2/@arcgis/core/views/MapView.js";
+    import GraphicsLayer from "https://js.arcgis.com/5.2/@arcgis/core/layers/GraphicsLayer.js";
+    import FeatureLayer from "https://js.arcgis.com/5.2/@arcgis/core/layers/FeatureLayer.js";
+    import Graphic from "https://js.arcgis.com/5.2/@arcgis/core/Graphic.js";
+    import Point from "https://js.arcgis.com/5.2/@arcgis/core/geometry/Point.js";
+    import SimpleMarkerSymbol from "https://js.arcgis.com/5.2/@arcgis/core/symbols/SimpleMarkerSymbol.js";
+    import HeatmapRenderer from "https://js.arcgis.com/5.2/@arcgis/core/renderers/HeatmapRenderer.js";
+
+    const d3 = window.d3;
+
+    // =========================================================
+    // 2. DATASET
+    // =========================================================
+    const data = [
+      { wilaya: "Algiers",     longitude:  3.0588, latitude: 36.7538, population: 3.00, unemployment: 11.0 },
+      { wilaya: "Oran",        longitude: -0.6417, latitude: 35.6971, population: 1.60, unemployment: 12.5 },
+      { wilaya: "Constantine", longitude:  6.6147, latitude: 36.3650, population: 0.95, unemployment: 13.0 },
+      { wilaya: "Annaba",      longitude:  7.7667, latitude: 36.9000, population: 0.65, unemployment: 10.5 },
+      { wilaya: "Tlemcen",     longitude: -1.3167, latitude: 34.8828, population: 0.75, unemployment: 14.0 },
+      { wilaya: "Bejaia",      longitude:  5.0667, latitude: 36.7500, population: 0.90, unemployment:  9.5 },
+      { wilaya: "Setif",       longitude:  5.4000, latitude: 36.1900, population: 1.00, unemployment: 12.0 },
+      { wilaya: "Ghardaia",    longitude:  3.6736, latitude: 32.4902, population: 0.45, unemployment:  8.5 },
+      { wilaya: "Batna",       longitude:  6.1741, latitude: 35.5559, population: 1.15, unemployment: 13.5 },
+      { wilaya: "Tamanrasset", longitude:  5.5228, latitude: 22.7850, population: 0.25, unemployment:  9.0 }
+    ];
+
+    // =========================================================
+    // 3. COLOR ENCODING & GLOBAL VARIABLES
+    // =========================================================
+    let selectedWilaya = null;
+    let currentMetric = "population";
+    let currentChartType = "bar";
+    let currentMapType = "standard";
+
+    const color = d3.scaleOrdinal()
+      .domain(data.map(d => d.wilaya))
+      .range(d3.schemeTableau10);
+
+    const mapTypeSelect = document.getElementById("mapTypeSelect");
+    const chartTypeSelect = document.getElementById("chartTypeSelect");
+    const metricSelect = document.getElementById("metricSelect");
+    const mapTitle = document.getElementById("mapTitle");
+    const mapSubtitle = document.getElementById("mapSubtitle");
+    const chartTitle = document.getElementById("chartTitle");
+    const chartSubtitle = document.getElementById("chartSubtitle");
+    const barChartContainer = document.getElementById("barChartContainer");
+    const pieChartContainer = document.getElementById("pieChartContainer");
+    const mapSelectionInfo = document.getElementById("mapSelectionInfo");
+    const chartSelectionInfo = document.getElementById("chartSelectionInfo");
+
+    // Échelle de taille pour la Bubble Map
+    const bubbleRadiusScale = d3.scaleSqrt()
+      .range([10, 42]);
+
+    // =========================================================
+    // 4. CREATE ARCGIS LAYERS (POINTS + HEATMAP)
+    // =========================================================
+    const graphicsLayer = new GraphicsLayer({
+      title: "Algerian wilayas"
+    });
+
+    // Création des entités (Graphics)
+    const graphicByWilaya = new Map();
+    const pointFeatures = data.map((d, index) => {
+      const point = new Point({
+        longitude: d.longitude,
+        latitude: d.latitude
+      });
+
+      const graphic = new Graphic({
+        geometry: point,
+        attributes: {
+          ObjectID: index + 1,
+          wilaya: d.wilaya,
+          population: d.population,
+          unemployment: d.unemployment
+        },
+        popupTemplate: {
+          title: "{wilaya}",
+          content:
+            "Population: {population} million<br>" +
+            "Unemployment: {unemployment}%"
+        }
+      });
+
+      graphicsLayer.add(graphic);
+      graphicByWilaya.set(d.wilaya, graphic);
+      return graphic;
+    });
+
+    // Couche FeatureLayer dédiée à la Heatmap (Carte de chaleur)
+    const heatmapLayer = new FeatureLayer({
+      source: pointFeatures,
+      objectIdField: "ObjectID",
+      fields: [
+        { name: "ObjectID", type: "oid" },
+        { name: "wilaya", type: "string" },
+        { name: "population", type: "double" },
+        { name: "unemployment", type: "double" }
+      ],
+      visible: false,
+      renderer: new HeatmapRenderer({
+        field: "population",
+        colorStops: [
+          { ratio: 0,    color: "rgba(63, 40, 102, 0)" },
+          { ratio: 0.2,  color: "rgba(38, 118, 184, 0.7)" },
+          { ratio: 0.5,  color: "rgba(44, 160, 44, 0.85)" },
+          { ratio: 0.8,  color: "rgba(255, 187, 120, 0.9)" },
+          { ratio: 1,    color: "rgba(214, 39, 40, 0.95)" }
+        ],
+        radius: 35,
+        maxDensity: 0.05,
+        minDensity: 0
+      })
+    });
+
+    const map = new EsriMap({
+      basemap: "streets-vector",
+      layers: [heatmapLayer, graphicsLayer]
+    });
+
+    const view = new MapView({
+      container: "viewDiv",
+      map: map,
+      center: [3.5, 31.5],
+      zoom: 4.3
+    });
+
+    function createMarkerSymbol(wilayaName, isSelected) {
+      const datum = data.find(d => d.wilaya === wilayaName);
+      let markerSize = isSelected ? 18 : 12;
+
+      // Mode Bubble Map : la taille dépend de la valeur de l'indicateur
+      if (currentMapType === "bubble" && datum) {
+        bubbleRadiusScale.domain([0, d3.max(data, d => d[currentMetric])]);
+        markerSize = bubbleRadiusScale(datum[currentMetric]);
+      }
+
+      return new SimpleMarkerSymbol({
+        style: "circle",
+        color: currentMapType === "bubble"
+          ? d3.color(color(wilayaName)).copy({ opacity: 0.78 }).formatRgb()
+          : color(wilayaName),
+        size: markerSize,
+        outline: {
+          color: isSelected ? "#111827" : "#ffffff",
+          width: isSelected ? 3 : 1.5
+        }
+      });
+    }
+
+    function updateMapMode() {
+      // 1. Gestion du fond de carte (Basemap)
+      if (currentMapType === "satellite") {
+        map.basemap = "satellite";
+      } else if (currentMapType === "topo") {
+        map.basemap = "topo-vector";
+      } else {
+        map.basemap = "streets-vector";
+      }
+
+      // 2. Gestion Heatmap vs Points / Bulles
+      if (currentMapType === "heatmap") {
+        heatmapLayer.visible = true;
+        graphicsLayer.visible = false;
+        heatmapLayer.renderer.field = currentMetric;
+        mapTitle.textContent = `Interactive map (Heatmap - ${currentMetric})`;
+        mapSubtitle.textContent = "Density representation weighted by the selected indicator.";
+      } else {
+        heatmapLayer.visible = false;
+        graphicsLayer.visible = true;
+
+        const labels = {
+          standard: "Point Map (Streets)",
+          bubble: `Bubble Map (Sized by ${currentMetric})`,
+          satellite: "Satellite Imagery Map",
+          topo: "Topographic Map"
+        };
+        mapTitle.textContent = `Interactive map (${labels[currentMapType]})`;
+        mapSubtitle.textContent = currentMapType === "bubble"
+          ? "Circle area is proportional to the selected indicator."
+          : "Click a marker to select a wilaya.";
+      }
+
+      updateSelection();
+    }
+
+    async function zoomToWilaya(wilayaName) {
+      const target = data.find(d => d.wilaya === wilayaName);
+      if (target) {
+        await view.goTo({
+          center: [target.longitude, target.latitude],
+          zoom: 7
+        });
+      }
+    }
+
+    // =========================================================
+    // 5. CREATE THE POPULATION PIE CHART
+    // =========================================================
+    const pieWidth = 650;
+    const pieHeight = 440;
+    const radius = Math.min(pieWidth, pieHeight) / 2 - 35;
+
+    const pieSvg = d3.select("#pieChartContainer")
+      .append("svg")
+      .attr("viewBox", `0 0 ${pieWidth} ${pieHeight}`)
+      .attr("role", "img")
+      .attr("aria-label", "Population distribution pie chart");
+
+    const pieGroup = pieSvg.append("g")
+      .attr("transform", `translate(${pieWidth / 2}, ${pieHeight / 2})`);
+
+    const pie = d3.pie()
+      .value(d => d.population)
+      .sort(null);
+
+    const arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(radius);
+
+    const labelArc = d3.arc()
+      .innerRadius(radius * 0.68)
+      .outerRadius(radius * 0.68);
+
+    const pieData = pie(data);
+
+    const slices = pieGroup.selectAll(".slice")
+      .data(pieData)
+      .join("path")
+      .attr("class", "slice")
+      .attr("d", arc)
+      .attr("fill", d => color(d.data.wilaya))
+      .on("click", function (event, d) {
+        selectWilaya(d.data.wilaya, true);
+      });
+
+    slices.append("title")
+      .text(d => `${d.data.wilaya}: ${d.data.population} million`);
+
+    pieGroup.selectAll(".slice-label")
+      .data(pieData)
+      .join("text")
+      .attr("class", "slice-label")
+      .attr("transform", d => `translate(${labelArc.centroid(d)})`)
+      .attr("text-anchor", "middle")
+      .text(d => (d.endAngle - d.startAngle > 0.25) ? d.data.wilaya : "");
+
+    // =========================================================
+    // 6. CREATE & UPDATE THE D3.JS BAR CHART
+    // =========================================================
+    const barWidth = 650;
+    const barHeight = 440;
+    const margin = { top: 35, right: 25, bottom: 105, left: 65 };
+
+    const innerWidth = barWidth - margin.left - margin.right;
+    const innerHeight = barHeight - margin.top - margin.bottom;
+
+    const barSvg = d3.select("#barChartContainer")
+      .append("svg")
+      .attr("viewBox", `0 0 ${barWidth} ${barHeight}`)
+      .attr("role", "img")
+      .attr("aria-label", "Comparison of indicators by wilaya");
+
+    const chartGroup = barSvg.append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xScale = d3.scaleBand()
+      .domain(data.map(d => d.wilaya))
+      .range([0, innerWidth])
+      .padding(0.22);
+
+    const yScale = d3.scaleLinear()
+      .range([innerHeight, 0]);
+
+    const xAxisGroup = chartGroup.append("g")
+      .attr("class", "axis")
+      .attr("transform", `translate(0,${innerHeight})`);
+
+    const yAxisGroup = chartGroup.append("g")
+      .attr("class", "axis");
+
+    const yAxisLabel = chartGroup.append("text")
+      .attr("class", "axis-label")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -innerHeight / 2)
+      .attr("y", -48)
+      .attr("text-anchor", "middle");
+
+    const bars = chartGroup.selectAll(".bar")
+      .data(data)
+      .join("rect")
+      .attr("class", "bar")
+      .attr("x", d => xScale(d.wilaya))
+      .attr("width", xScale.bandwidth())
+      .attr("fill", d => color(d.wilaya))
+      .attr("rx", 3)
+      .on("click", function (event, d) {
+        selectWilaya(d.wilaya, true);
+      });
+
+    function getMetricValue(d) {
+      return d[currentMetric];
+    }
+
+    function updateChart() {
+      const isPopulation = currentMetric === "population";
+
+      if (currentChartType === "bar") {
+        barChartContainer.classList.remove("hidden");
+        pieChartContainer.classList.add("hidden");
+        metricSelect.disabled = false;
+
+        chartTitle.textContent = isPopulation
+          ? "Population by wilaya (Bar Chart)"
+          : "Unemployment by wilaya (Bar Chart)";
+        chartSubtitle.textContent = "Click a bar to select and zoom to the corresponding wilaya.";
+
+        yAxisLabel.text(
+          isPopulation ? "Population (millions)" : "Unemployment (%)"
+        );
+
+        yScale
+          .domain([0, d3.max(data, getMetricValue) * 1.12])
+          .nice();
+
+        xAxisGroup.call(d3.axisBottom(xScale));
+
+        xAxisGroup.selectAll("text")
+          .attr("transform", "rotate(-40)")
+          .style("text-anchor", "end")
+          .attr("dx", "-0.6em")
+          .attr("dy", "0.2em");
+
+        yAxisGroup.call(d3.axisLeft(yScale).ticks(6));
+
+        bars
+          .transition()
+          .duration(450)
+          .attr("y", d => yScale(getMetricValue(d)))
+          .attr("height", d => innerHeight - yScale(getMetricValue(d)));
+
+        bars.selectAll("title").remove();
+        bars.append("title")
+          .text(d => `${d.wilaya}: ${getMetricValue(d)}${isPopulation ? " million" : "%"}`);
+      } else {
+        barChartContainer.classList.add("hidden");
+        pieChartContainer.classList.remove("hidden");
+        metricSelect.value = "population";
+        currentMetric = "population";
+        metricSelect.disabled = true;
+
+        chartTitle.textContent = "Population distribution (Pie Chart)";
+        chartSubtitle.textContent = "Click a slice to select and zoom to the corresponding wilaya.";
+      }
+
+      updateMapMode();
+    }
+
+    mapTypeSelect.addEventListener("change", function (event) {
+      currentMapType = event.target.value;
+      updateMapMode();
+    });
+
+    chartTypeSelect.addEventListener("change", function (event) {
+      currentChartType = event.target.value;
+      updateChart();
+    });
+
+    metricSelect.addEventListener("change", function (event) {
+      currentMetric = event.target.value;
+      updateChart();
+    });
+
+    // =========================================================
+    // 7. SYNCHRONIZE THE VIEWS
+    // =========================================================
+    function selectWilaya(wilayaName, shouldZoom = false) {
+      selectedWilaya = wilayaName;
+      updateSelection();
+
+      if (shouldZoom && wilayaName) {
+        zoomToWilaya(wilayaName);
+      }
+    }
+
+    function updateSelection() {
+      data.forEach(function (d) {
+        const marker = graphicByWilaya.get(d.wilaya);
+        if (marker) {
+          marker.symbol = createMarkerSymbol(d.wilaya, d.wilaya === selectedWilaya);
+        }
+      });
+
+      slices.classed("selected", d => d.data.wilaya === selectedWilaya);
+      slices.filter(d => d.data.wilaya === selectedWilaya).raise();
+
+      bars.classed("selected", d => d.wilaya === selectedWilaya);
+
+      const selectedObj = data.find(d => d.wilaya === selectedWilaya);
+      const message = selectedObj
+        ? `Selected wilaya: ${selectedObj.wilaya} (Pop: ${selectedObj.population}M | Unemp: ${selectedObj.unemployment}%)`
+        : "Selected wilaya: none";
+
+      mapSelectionInfo.textContent = message;
+      chartSelectionInfo.textContent = message;
+    }
+
+    view.on("click", async function (event) {
+      const hit = await view.hitTest(event);
+
+      const result = hit.results.find(function (item) {
+        return item.graphic && item.graphic.layer === graphicsLayer;
+      });
+
+      if (result) {
+        const wilayaName = result.graphic.attributes.wilaya;
+        selectWilaya(wilayaName, false);
+      }
+    });
+
+    // =========================================================
+    // 8. INITIALIZE THE APPLICATION
+    // =========================================================
+    updateChart();
+  </script>
+</body>
+</html>
